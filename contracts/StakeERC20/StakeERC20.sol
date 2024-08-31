@@ -153,14 +153,20 @@ contract StakeERC20 is ReentrancyGuard {
         if (!hasStakingWindowOpened) {
             revert StakingWindowNotOpen();
         }
+
         sanityCheck(msg.sender);
         zeroValue(_amount);
+
         _amount = _amount * 1e18;
+
         if (_amount > MAX_STAKE_VALUE) {
             revert TooLargeStake();
         }
+
         IERC20(tokenAddress).transferFrom(msg.sender, address(this), _amount);
+
         userRewardsMap[msg.sender] = userStake(_amount, 0, false);
+
         totalStake = totalStake + _amount;
 
         emit UserStakingSuccessful(msg.sender, _amount);
@@ -175,9 +181,11 @@ contract StakeERC20 is ReentrancyGuard {
     function withdrawStake() public nonReentrant {
         onlyStaker();
         sanityCheck(msg.sender);
+
         if (!checkIfStakingDurationHasEnded()) {
             revert StakingHasNotEnded();
         }
+
         // general staking has ended
         hasStakingStarted = false;
         _endStaking();
@@ -186,6 +194,7 @@ contract StakeERC20 is ReentrancyGuard {
     function checkUnclaimedRewards() public view returns (uint) {
         sanityCheck(msg.sender);
         onlyStaker();
+
         return
             _calculateRewards(msg.sender) -
             userRewardsMap[msg.sender].rewardsClaimed;
@@ -194,14 +203,17 @@ contract StakeERC20 is ReentrancyGuard {
     function checkClaimedRewards() public view returns (uint) {
         onlyStaker();
         sanityCheck(msg.sender);
+
         return userRewardsMap[msg.sender].rewardsClaimed;
     }
 
     function claimRewards() public {
         onlyStaker();
         sanityCheck(msg.sender);
+
         uint unclaimedReward = checkUnclaimedRewards();
         zeroValue(unclaimedReward);
+
         userRewardsMap[msg.sender].rewardsClaimed += unclaimedReward;
         // send rewards
 
@@ -214,8 +226,10 @@ contract StakeERC20 is ReentrancyGuard {
         if (totalRewards <= 0) {
             revert InsufficientRewardBalance();
         }
+
         uint timeSinceStake = block.timestamp - exactTimeStakingStarted;
         uint _amount;
+
         // if the duration has ended, calculate the full rewards
         if (checkIfStakingDurationHasEnded()) {
             _amount =
@@ -223,6 +237,7 @@ contract StakeERC20 is ReentrancyGuard {
                 (totalStake);
             return _amount;
         }
+
         // if the duration has ended, calculate rewards per second
         _amount =
             (userRewardsMap[_user].stakedAmount *
@@ -234,10 +249,13 @@ contract StakeERC20 is ReentrancyGuard {
 
     function _endStaking() private {
         sanityCheck(msg.sender);
+
         uint _stakedAmount = userRewardsMap[msg.sender].stakedAmount;
+
         if (_stakedAmount <= 0) {
             revert ZeroAmountDetected();
         }
+        
         userRewardsMap[msg.sender].stakedAmount = 0;
 
         // send token

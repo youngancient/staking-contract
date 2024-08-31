@@ -101,16 +101,22 @@ contract StakeEthers is ReentrancyGuard {
     // @dev sets general staking duration in days
     function _setGeneralStakingDuration(uint _days) private {
         onlyOwner();
+
         if (hasStakingStarted) {
             revert CantEditStakingThatIsOn();
         }
+
         zeroValue(_days);
+
         // we convert the day to its equivalence in seconds
         // rewards given is per second
         // stakeDuration = (_days) + block.timestamp;   -> for testing
         stakeDuration = (_days * 1 days) + block.timestamp;
+
         exactTimeStakingStarted = block.timestamp;
+
         stakingLength = _days * 1 days;
+
         // stakingLength = _days;   -> for testing in secs
         hasStakingStarted = true;
         emit StakingDurationSetSuccessfully(owner, _days);
@@ -154,6 +160,7 @@ contract StakeEthers is ReentrancyGuard {
         if (!hasStakingWindowOpened) {
             revert StakingWindowNotOpen();
         }
+
         sanityCheck(msg.sender);
         zeroValue(msg.value);
 
@@ -187,6 +194,7 @@ contract StakeEthers is ReentrancyGuard {
     function checkUnclaimedRewards() public view returns (uint) {
         sanityCheck(msg.sender);
         onlyStaker();
+
         return
             _calculateRewards(msg.sender) -
             userRewardsMap[msg.sender].rewardsClaimed;
@@ -195,13 +203,16 @@ contract StakeEthers is ReentrancyGuard {
     function checkClaimedRewards() public view returns (uint) {
         onlyStaker();
         sanityCheck(msg.sender);
+
         return userRewardsMap[msg.sender].rewardsClaimed;
     }
 
     function claimRewards() public {
         onlyStaker();
         sanityCheck(msg.sender);
+
         uint unclaimedReward = checkUnclaimedRewards();
+
         zeroValue(unclaimedReward);
         userRewardsMap[msg.sender].rewardsClaimed += unclaimedReward;
         // send rewards
@@ -215,8 +226,10 @@ contract StakeEthers is ReentrancyGuard {
         if (totalRewards <= 0) {
             revert InsufficientRewardBalance();
         }
+
         uint timeSinceStake = block.timestamp - exactTimeStakingStarted;
         uint _amount;
+
         // if the duration has ended, calculate the full rewards
         if (checkIfStakingDurationHasEnded()) {
             _amount =
@@ -224,6 +237,7 @@ contract StakeEthers is ReentrancyGuard {
                 (totalStake);
             return _amount;
         }
+        
         // if the duration has ended, calculate rewards per second
         _amount =
             (userRewardsMap[_user].stakedAmount *
