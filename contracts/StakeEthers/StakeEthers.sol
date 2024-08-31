@@ -26,7 +26,7 @@ contract StakeEthers is ReentrancyGuard {
     address tokenAddress; // ERC20 Token to be earned as reward
     uint public stakeDuration;
     uint public stakingLength;
-    uint constant MAX_STAKE_VALUE = 50*1e18;
+    uint constant MAX_STAKE_VALUE = 50 * 1e18;
     uint exactTimeStakingStarted;
     uint totalStake;
 
@@ -83,16 +83,13 @@ contract StakeEthers is ReentrancyGuard {
     }
 
     // token is of 18 decimals
-    function addTokenRewards(uint _tokens) public {
+    function addTokenRewards(uint _tokens) public nonReentrant {
         onlyOwner();
         zeroValue(_tokens);
 
         uint tokenContractBalance = IERC20(tokenAddress).balanceOf(owner);
 
-        require(
-            _tokens <= tokenContractBalance,
-            "Insufficient CasToken!"
-        );
+        require(_tokens <= tokenContractBalance, "Insufficient CasToken!");
 
         IERC20(tokenAddress).transferFrom(owner, address(this), _tokens);
         emit RewardAddedSuccessfully(owner, _tokens);
@@ -207,7 +204,7 @@ contract StakeEthers is ReentrancyGuard {
         return userRewardsMap[msg.sender].rewardsClaimed;
     }
 
-    function claimRewards() public {
+    function claimRewards() public nonReentrant {
         onlyStaker();
         sanityCheck(msg.sender);
 
@@ -237,7 +234,7 @@ contract StakeEthers is ReentrancyGuard {
                 (totalStake);
             return _amount;
         }
-        
+
         // if the duration has ended, calculate rewards per second
         _amount =
             (userRewardsMap[_user].stakedAmount *
