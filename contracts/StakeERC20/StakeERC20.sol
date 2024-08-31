@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract StakeERC20 is ReentrancyGuard {
+contract StakeERC20 {
     error ZeroAddressError();
     error ZeroAmountDetected();
     error InSufficientFunds();
@@ -178,7 +178,7 @@ contract StakeERC20 is ReentrancyGuard {
     }
 
     // withdraw
-    function withdrawStake() public nonReentrant {
+    function withdrawStake() public {
         onlyStaker();
         sanityCheck(msg.sender);
 
@@ -255,7 +255,7 @@ contract StakeERC20 is ReentrancyGuard {
         if (_stakedAmount <= 0) {
             revert ZeroAmountDetected();
         }
-        
+
         userRewardsMap[msg.sender].stakedAmount = 0;
 
         // send token
